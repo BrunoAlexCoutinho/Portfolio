@@ -1,0 +1,10 @@
+# Synthetic NIF numbers (patterns + computed check digit), not real people.
+123456789
+PT 501 234 560
+600000001
+980000009
+450000001
+# invalid ones
+123456780
+730000000
+12345678

@@ -1,0 +1,6 @@
+{
+  "photos": [".jpg", ".jpeg", ".png", ".heic", ".webp"],
+  "work": [".pdf", ".docx", ".xlsx", ".pptx", ".csv"],
+  "media": [".mp3", ".m4a", ".mp4", ".mov"],
+  "dev": [".py", ".ipynb", ".sql", ".json", ".html"]
+}

@@ -1,0 +1,108 @@
+HOW TO RUN - pt-nif-iban-validator
+==================================
+
+Validates Portuguese tax numbers (NIF) and IBANs. Installable package with a
+"ptvalidate" command.
+
+
+1. SETUP (once)
+---------------
+No external packages are needed at runtime. Python 3.10 or newer.
+Install the package in editable mode (this also creates the ptvalidate
+command) plus pytest for the tests. Use a virtual environment outside the
+OneDrive folder:
+
+  Windows (PowerShell):
+    python -m venv $env:USERPROFILE\.venvs\portfolio
+    & $env:USERPROFILE\.venvs\portfolio\Scripts\Activate.ps1
+    pip install -e . pytest
+
+  macOS / Linux:
+    python3 -m venv ~/.venvs/portfolio
+    source ~/.venvs/portfolio/bin/activate
+    pip install -e . pytest
+
+  Run these from the project folder. "pip install -e ." creates a
+  ptvalidators.egg-info folder there (it is in .gitignore).
+
+  Without installing, every command also works as:
+    python -m ptvalidators nif 123456789
+
+
+2. QUICK TEST (copy and paste)
+------------------------------
+  ptvalidate  nif 123456789
+  ptvalidate  iban "GB82 WEST 1234 5698 7654 32"
+  ptvalidate nif --file examples/nifs.txt
+  ptvalidate iban --file examples/ibans.txt
+  pytest
+
+Expected:
+  - VALID    123456789  individual
+  - VALID    GB82 WEST 1234 5698 7654 32             GB
+  - nifs.txt:  "8 checked, 5 valid, 3 invalid"   (exit code 1)
+  - ibans.txt: "7 checked, 4 valid, 3 invalid"   (exit code 1), including
+      INVALID  PT71 1234 5678 1234 5678 9010 0         IBAN checksum is fine but the NIB check digits are wrong
+  - pytest: "82 passed"
+
+Check the exit code:
+  Windows (PowerShell):  ptvalidate nif 123456780; $LASTEXITCODE
+  macOS / Linux:         ptvalidate nif 123456780; echo $?
+
+
+3. COMMAND REFERENCE
+--------------------
+  ptvalidate nif  [VALUE ...] [-f FILE]
+  ptvalidate iban [VALUE ...] [-f FILE]
+  (or: python -m ptvalidators nif|iban ...)
+
+  VALUE        one or more values. Quote values with spaces:
+               ptvalidate iban "PT50 1234 5678 1234 5678 9018 7"
+  -f, --file   text file, one value per line; blank lines and lines
+               starting with # are ignored. Can be combined with VALUEs.
+
+  Accepted formats:
+    NIF   123456789, "123 456 789", 123.456.789, "PT 123 456 789"
+    IBAN  with or without spaces, upper or lower case, optional "IBAN " label
+
+  Output: one line per value, VALID or INVALID with the reason, and a summary
+  line when more than one value is checked.
+
+  Exit codes: 0 all valid, 1 at least one invalid, 2 no input / file not found
+
+  From Python:
+    from ptvalidators import nif, iban
+    nif.validate("501234560")      -> NifResult(nif, valid, entity, error)
+    iban.validate("GB82WEST...")   -> IbanResult(iban, valid, country, error)
+    nif.is_valid(...), iban.is_valid(...), iban.pretty(...)
+
+
+4. TEST FILES INCLUDED
+----------------------
+  examples/nifs.txt    5 valid synthetic NIFs (individual, company, public body,
+                       non-resident) and 3 invalid ones: wrong check digit,
+                       impossible prefix 73, only 8 digits
+  examples/ibans.txt   the ECBS example GB82 WEST 1234 5698 7654 32, the common
+                       DE89 documentation example, 2 synthetic PT IBANs, and 3
+                       invalid ones: swapped digits, PT IBAN one digit short,
+                       PT IBAN whose IBAN digits are right but NIB digits wrong
+  None of the numbers belong to real people or accounts on purpose.
+
+
+5. TRY YOUR OWN
+---------------
+  - Change one digit of a valid value and run it again:
+      ptvalidate iban "GB82 WEST 1234 5698 7654 33"
+      -> INVALID  ...  wrong check digits (expected 55)
+  - Validate your own list:
+      ptvalidate nif --file my_nifs.txt
+
+
+6. UNIT TESTS
+-------------
+  pytest    -> 82 passed (many are parametrised over every NIF prefix and every
+               supported IBAN country). Valid NIFs and IBANs are generated inside
+               the tests with an independent implementation of each algorithm.
+               Also covered: every single-digit change and adjacent swap is
+               caught, PT IBANs always start with PT50, the NIB check, error
+               messages, normalisation, CLI exit codes and --file.

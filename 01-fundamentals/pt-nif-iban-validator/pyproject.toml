@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ptvalidators"
+version = "0.1.0"
+description = "Validate Portuguese NIF numbers and IBANs (mod-11 and mod-97 checks)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.scripts]
+ptvalidate = "ptvalidators.__main__:main"
+
+[tool.setuptools]
+packages = ["ptvalidators"]

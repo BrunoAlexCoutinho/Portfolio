@@ -1,0 +1,113 @@
+HOW TO RUN - duplicate-file-finder
+==================================
+
+Finds files with identical content in one or more folders (size -> first
+4 KB hash -> full SHA-256). It only reports; it never deletes anything.
+
+
+1. SETUP (once)
+---------------
+No external packages are needed. Python 3.10 or newer.
+For the unit tests only:
+
+  pip install pytest
+
+
+2. QUICK TEST (copy and paste)
+------------------------------
+  Windows (PowerShell):
+    python make_demo_folder.py demo
+    python dupfind.py demo
+    python dupfind.py demo --exclude "cache/*"
+    python dupfind.py demo --min-size 1M --report dups.csv
+    Get-Content dups.csv
+
+  macOS / Linux:
+    python3 make_demo_folder.py demo
+    python3 dupfind.py demo
+    python3 dupfind.py demo --exclude "cache/*"
+    python3 dupfind.py demo --min-size 1M --report dups.csv
+    cat dups.csv
+
+  pytest
+
+Expected:
+  - "Created 26 files (18.1 MB) in demo"
+  - first scan:
+      same size         23 -> 18     candidates (5 eliminated, 0 B read)
+      first 4 KB        18 -> 12     candidates (6 eliminated, 72.0 KB read)
+      full SHA-256      12 -> 8      candidates (4 eliminated, 8.3 MB read)
+      read 8.4 MB in total; hashing every file would read 18.1 MB
+    then 3 groups (beach.jpg x4, birthday.mp4 x2, report-final.pdf x2) and
+      3 group(s), 5 redundant copies, 4.8 MB wasted
+  - with --exclude "cache/*": 3 group(s), 4 redundant copies, 4.0 MB wasted
+  - with --min-size 1M: only the video group; dups.csv has 2 rows + header
+  - pytest: "11 passed"
+  On Windows the paths are printed with backslashes (demo\backup\...).
+
+
+3. COMMAND REFERENCE
+--------------------
+  python dupfind.py FOLDER [FOLDER ...] [--min-size SIZE] [--exclude PATTERN]
+                                        [--report FILE]
+
+  FOLDER             one or more folders, scanned recursively
+  --min-size SIZE    ignore smaller files. Bytes, or with K / M / G suffix:
+                     100, 10K, 1.5M. Default 1 (skips empty files)
+  --exclude PATTERN  glob on the path relative to the folder or on the file
+                     name, repeatable: --exclude "*.tmp" --exclude "cache/*"
+  --report FILE      also write the groups to FILE; the format comes from the
+                     extension: .csv (one row per file) or .json (one object
+                     per group)
+
+  Exit codes: 0 = no duplicates, 1 = duplicates found, 2 = bad input
+
+  Symlinks are skipped. Hard links and folders given twice (demo demo/photos)
+  are counted once.
+
+  python make_demo_folder.py DEST
+    Creates the demo tree (seeded, always the same content). Refuses to write
+    into a non-empty folder.
+
+
+4. TEST FILES INCLUDED
+----------------------
+  make_demo_folder.py builds demo/ with:
+    photos/2024/beach.jpg + 3 copies   exact duplicates (one copy in cache/)
+    videos/birthday.mp4 + 1 copy       exact duplicate, 2.3 MB
+    documents/report-final.pdf + copy  exact duplicate
+    photos/raw/DSC_000*.raw            6 files of exactly 1.5 MB, different
+                                       content -> removed by the 4 KB stage
+    logs/export_*.log                  same size and same first 4 KB, different
+                                       ending -> removed only by the full hash
+    music/, notes, budget, settings    unique files
+    3 empty files                      ignored unless --min-size 0
+
+
+5. TRY YOUR OWN
+---------------
+  - Two folders at once, JSON report:
+      python dupfind.py demo/photos demo/backup --report dups.json
+    -> "1 group(s), 2 redundant copies, 1.6 MB wasted"
+  - Several excludes:
+      python dupfind.py demo --exclude "*.jpg" --exclude "logs/*"
+    -> "2 group(s), 2 redundant copies, 2.4 MB wasted"
+  - Your own Pictures folder, big files only:
+      Windows:      python dupfind.py $env:USERPROFILE\Pictures --min-size 100K
+      macOS/Linux:  python3 dupfind.py ~/Pictures --min-size 100K
+
+
+6. UNIT TESTS
+-------------
+  pytest    -> 11 passed
+               size parsing, chunked and prefix hashing, only exact duplicates
+               reported, each stage removes its kind of false candidate,
+               empty files, --min-size / --exclude, overlapping folders,
+               hard links, wasted space, CSV/JSON reports, files not modified
+
+
+CLEAN UP
+--------
+  Windows:      Remove-Item -Recurse -Force demo; Remove-Item dups.*
+  macOS/Linux:  rm -rf demo dups.*
+  (demo/ and dups*.csv / dups*.json are listed in .gitignore)

@@ -1,0 +1,121 @@
+HOW TO RUN - file-organizer
+===========================
+
+Sorts the files of a folder into subfolders by type (images, documents, ...)
+or by date (YYYY/MM). Dry-run shows the plan first; undo puts everything back.
+
+
+1. SETUP (once)
+---------------
+No external packages are needed. Python 3.10 or newer.
+For the unit tests only:
+
+  pip install pytest
+
+
+2. QUICK TEST (copy and paste)
+------------------------------
+Never try it first on a folder you care about. Create a demo folder:
+
+  Windows (PowerShell):
+    python make_demo_folder.py demo
+    python organize.py sort demo --dry-run
+    python organize.py sort demo
+    Get-ChildItem demo
+    python organize.py undo demo
+    python organize.py sort demo --by date
+    python organize.py undo demo
+
+  macOS / Linux:
+    python3 make_demo_folder.py demo
+    python3 organize.py sort demo --dry-run
+    python3 organize.py sort demo
+    ls demo
+    python3 organize.py undo demo
+    python3 organize.py sort demo --by date
+    python3 organize.py undo demo
+
+  pytest
+
+Expected:
+  - "Created 30 files in demo (+ 2 already in subfolders, 2 hidden)"
+  - dry run, last line:
+      30 file(s) would move (archives: 3, audio: 2, code: 5, documents: 7,
+      images: 5, other: 3, spreadsheets: 3, video: 2)
+    and two collisions:
+      IMG_2041.JPG  -> images/IMG_2041 (1).JPG
+      report.pdf    -> documents/report (1).pdf
+  - after the real sort, demo contains archives, audio, code, documents,
+    images, other, spreadsheets, video and organizer-log.json
+    (the two hidden files stay where they are)
+  - undo: "Restored 30 file(s) to their original place."
+  - --by date creates folders like 2024/04, 2025/02, 2026/08 (21 month folders;
+    a month can differ by one if your timezone moves a date across midnight)
+  - pytest: "12 passed"
+
+
+3. COMMAND REFERENCE
+--------------------
+  python organize.py sort DIRECTORY [--by category|date] [--config FILE]
+                                    [--dry-run] [--recursive]
+
+  DIRECTORY        folder to organise
+  --by category    (default) by extension: images, documents, spreadsheets,
+                   audio, video, archives, code, other
+  --by date        YYYY/MM folders from the modification time
+  --config FILE    JSON {"folder": [".ext", ...]} replacing the built-in
+                   categories; unlisted extensions go to other/
+  --dry-run        print the plan, move nothing
+  --recursive      also take files from subfolders (files already in the
+                   right folder stay). Default: top level only.
+
+  python organize.py undo DIRECTORY
+    Reverts the last sort of DIRECTORY using DIRECTORY/organizer-log.json and
+    removes the folders that run created (if empty). Run it again to revert
+    the run before that.
+
+  Exit codes: 0 = ok, 1 = undo could not restore some files (warnings printed),
+              2 = bad input (not a directory, bad config, nothing to undo)
+
+  python make_demo_folder.py DEST
+    Creates DEST with 30 messy files, 2 files already in subfolders and
+    2 hidden files. Refuses to write into a non-empty folder.
+
+  Always skipped: hidden files/folders (name starting with ".") and
+  organizer-log.json. Existing files are never overwritten: a name clash
+  becomes "name (1).ext", "name (2).ext", ...
+
+
+4. TEST FILES INCLUDED
+----------------------
+  make_demo_folder.py       generates the demo folder (fixed seed, so the same
+                            names and dates every time)
+  examples/categories.json  custom categories: photos, work, media, dev
+
+
+5. TRY YOUR OWN
+---------------
+  - Your own categories:
+      python organize.py sort demo --config examples/categories.json --dry-run
+    -> "30 file(s) would move (dev: 5, media: 4, other: 10, photos: 4, work: 7)"
+  - Include subfolders:
+      python organize.py sort demo --recursive --dry-run
+  - Your real Downloads folder (look at the dry run first!):
+      Windows:      python organize.py sort $env:USERPROFILE\Downloads --dry-run
+      macOS/Linux:  python3 organize.py sort ~/Downloads --dry-run
+
+
+6. UNIT TESTS
+-------------
+  pytest    -> 12 passed
+               category and date plans, dry run changes nothing, hidden files
+               and log skipped, --recursive, collisions (with the disk and
+               inside one run), undo restores the exact original tree, undo
+               of several runs, custom/bad config
+
+
+CLEAN UP
+--------
+  Windows:      Remove-Item -Recurse -Force demo
+  macOS/Linux:  rm -rf demo
+  (demo/ is listed in .gitignore)
