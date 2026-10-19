@@ -1,4 +1,4 @@
-# Python Portfolio Projects
+# Portfolio Projects
 
 Welcome to my code portfolio! This repository serves as a centralized collection of some of my projects.
 
