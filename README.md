@@ -38,3 +38,8 @@ If you want to pull this code down and run the tests on your own Windows machine
 ```bash
 git clone [https://github.com/BrunoAlexCoutinho/Portfolio.git](https://github.com/BrunoAlexCoutinho/Portfolio.git)
 cd Portfolio/01-fundamentals/pt-nif-iban-validator
+```
+
+##  Contact
+[LinkedIn](https://www.linkedin.com/in/bruno-coutinho-pt) | [Email Me](https://BrunoAlexCoutinho.github.io/contact.html) | [Website](https://BrunoAlexCoutinho.github.io) | [Portfolio](https://github.com/BrunoAlexCoutinho/Portfolio)  
+
