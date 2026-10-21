@@ -1,0 +1,114 @@
+HOW TO RUN - huffman-compression
+================================
+
+Compresses and decompresses any file with Huffman coding, and compares the
+average code length with the Shannon entropy of the file.
+
+
+1. SETUP (once)
+---------------
+No external packages are needed. Python 3.10 or newer.
+For the unit tests only:
+
+  pip install pytest
+
+
+2. QUICK TEST (copy and paste)
+------------------------------
+  Windows (PowerShell):
+    python huffman.py compress examples\english.txt english.huf
+    python huffman.py decompress english.huf english.out
+    (Get-FileHash english.out).Hash -eq (Get-FileHash examples\english.txt).Hash
+    python huffman.py stats examples\english.txt
+    python examples\make_random.py random.bin
+    python huffman.py stats random.bin --top 3
+
+  macOS / Linux:
+    python3 huffman.py compress examples/english.txt english.huf
+    python3 huffman.py decompress english.huf english.out
+    cmp english.out examples/english.txt && echo identical
+    python3 huffman.py stats examples/english.txt
+    python3 examples/make_random.py random.bin
+    python3 huffman.py stats random.bin --top 3
+
+  pytest
+
+Expected:
+  - "examples/english.txt -> english.huf: 4,183 -> 2,659 bytes (63.6% of original)"
+  - "english.huf -> english.out: 4,183 bytes restored"
+  - the hash check prints True (Windows) / "identical" (macOS/Linux)
+  - stats on english.txt:
+      Entropy:           4.403 bits/symbol
+      Huffman average:   4.440 bits/symbol  (+0.037 over entropy)
+      ...
+      ' '          725   17.3%  111
+  - "Wrote 20,000 random bytes to random.bin"
+  - stats on random.bin: entropy 7.989, Huffman average 8.000,
+      "Compressed total:  21,287 bytes = 106.4% of original (ratio 0.94:1)"
+    i.e. random data gets bigger, not smaller.
+  - pytest: "17 passed"
+  On Windows the file names are echoed as you typed them (examples\english.txt).
+
+
+3. COMMAND REFERENCE
+--------------------
+  python huffman.py compress INPUT OUTPUT
+  python huffman.py decompress INPUT OUTPUT
+  python huffman.py stats INPUT [--top N]
+
+  compress     any file -> Huffman file (header + packed codes)
+  decompress   Huffman file -> original bytes
+  stats        entropy, Huffman average bits per symbol, payload vs entropy
+               bound, header size, ratio, zlib -9 size for reference, and
+               the N most frequent symbols with their codes (--top, default 10)
+
+  Exit codes: 0 = ok, 2 = file missing, not a Huffman file / corrupted,
+              or OUTPUT is the same file as INPUT
+
+  python examples/make_random.py OUTPUT [--size BYTES] [--seed N]
+    writes seeded random bytes (default 20000 bytes, seed 0)
+
+
+4. TEST FILES INCLUDED
+----------------------
+  examples/english.txt     ~4 KB of English prose about variable-length codes.
+                           Typical text: ~4.4 bits of entropy per byte.
+  examples/access.log      140 lines of a synthetic web server log. Very
+                           repetitive as strings, but not as single bytes:
+                           Huffman gets 64.6%, zlib 17.8%.
+  examples/make_random.py  generates incompressible data.
+
+
+5. TRY YOUR OWN
+---------------
+  - The log file:
+      python huffman.py stats examples/access.log --top 5
+  - Edge cases:
+      Windows:      New-Item empty.txt -ItemType File
+                    Set-Content -NoNewline a.txt ("a" * 40)
+      macOS/Linux:  : > empty.txt
+                    printf 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' > a.txt
+      python huffman.py compress empty.txt empty.huf   -> 0 -> 7 bytes
+      python huffman.py compress a.txt a.huf           -> 40 -> 17 bytes
+      python huffman.py stats a.txt                    -> entropy 0.000,
+                                                          average 1.000 bit
+  - Any file you have (a PDF or a JPEG is already compressed, so expect
+    almost no gain).
+
+
+6. UNIT TESTS
+-------------
+  pytest    -> 17 passed
+               round trips (empty, one byte, single symbol, two symbols, all
+               256 values, random bytes of several sizes, the example files),
+               codes are prefix-free, entropy <= average < entropy + 1,
+               the textbook example costs the optimal 224 bits, header and
+               padding, deterministic output, random data doesn't shrink,
+               foreign and truncated files are rejected
+
+
+CLEAN UP
+--------
+  Windows:      Remove-Item *.huf, *.out, random.bin, empty.txt, a.txt
+  macOS/Linux:  rm -f *.huf *.out random.bin empty.txt a.txt
+  (*.huf, *.out and random.bin are in .gitignore)
