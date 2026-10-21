@@ -1,0 +1,99 @@
+HOW TO RUN - grid-pathfinding
+=============================
+
+Finds paths on text maps with BFS, Dijkstra and A*, draws them, and compares
+cost, number of steps, nodes expanded and time.
+
+
+1. SETUP (once)
+---------------
+No external packages are needed. Python 3.10 or newer.
+For the unit tests only:
+
+  pip install pytest
+
+
+2. QUICK TEST (copy and paste)
+------------------------------
+The commands are the same on Windows and macOS/Linux
+(use python3 instead of python on macOS/Linux if needed):
+
+  python pathfind.py solve examples/maps/weighted.txt --algo bfs
+  python pathfind.py solve examples/maps/weighted.txt
+  python pathfind.py compare examples/maps
+  pytest
+
+Expected:
+  - bfs:   "bfs: cost 74, 32 steps, 236 nodes expanded, ..."
+  - astar: "astar: cost 36, 36 steps, 95 nodes expanded, ..."
+    (the drawn path goes around the 3s and 9s instead of through them)
+  - compare: one table per map, e.g. for open.txt
+      bfs           35     35       235
+      dijkstra      35     35       235
+      astar         35     35        36
+    and "-" for cost and steps on no_path.txt
+  - pytest: "18 passed"
+  Times (last column) depend on your machine.
+
+
+3. COMMAND REFERENCE
+--------------------
+  python pathfind.py solve MAP [--algo astar|dijkstra|bfs]
+    Prints the map with the path drawn as '*' and one line of statistics.
+    --algo   default astar
+
+  python pathfind.py compare MAP_OR_FOLDER [MAP_OR_FOLDER ...] [--repeat N] [--show]
+    Runs the three algorithms on each map and prints a table:
+    cost, steps, nodes expanded, time in ms.
+    A folder means every .txt file in it.
+    --repeat N   runs per algorithm, the fastest time is shown (default 5)
+    --show       also draw the A* path under each table
+
+  Exit codes: 0 = path found (every map), 1 = some map has no path,
+              2 = file missing or invalid map
+
+  python generate_maps.py [OUTPUT_DIR]
+    Rebuilds maze.txt and big.txt (fixed seeds, always the same files).
+    Default OUTPUT_DIR is examples/maps.
+
+  Map format (plain text, one row per line):
+    #      wall
+    .      open, cost 1   ("1" also means cost 1)
+    2-9    terrain, cost = digit (cost of entering the cell)
+    S, G   start and goal (exactly one of each, cost 1)
+    Moves: up, down, left, right. Short lines are padded with walls.
+
+
+4. TEST FILES INCLUDED
+----------------------
+  examples/maps/open.txt      30x11 open field with one wall, no terrain.
+                              Shows how few nodes A* needs (36 vs 235).
+  examples/maps/maze.txt      41x21 perfect maze (one route only).
+                              The heuristic barely helps.
+  examples/maps/weighted.txt  30x11 with sand (3), swamp (9) and mud (5).
+                              BFS's path costs 74, the optimal one 36.
+  examples/maps/no_path.txt   20x8, the goal is walled in.
+  examples/maps/big.txt       60x30 random walls and terrain patches.
+
+
+5. TRY YOUR OWN
+---------------
+  - Draw every algorithm's path on the big map:
+      python pathfind.py solve examples/maps/big.txt --algo bfs
+      python pathfind.py solve examples/maps/big.txt --algo dijkstra
+      python pathfind.py solve examples/maps/big.txt
+  - Compare with the A* path drawn:
+      python pathfind.py compare examples/maps/weighted.txt --show
+  - Make your own map in a text editor (copy weighted.txt and change it),
+    then: python pathfind.py compare my_map.txt
+
+
+6. UNIT TESTS
+-------------
+  pytest    -> 18 passed
+               on every example map: A* cost == Dijkstra cost, A* expands
+               <= Dijkstra nodes, BFS has the fewest steps (checked against
+               Dijkstra on the same map with all costs set to 1), paths are
+               valid (adjacent cells, no walls, cost adds up);
+               40 random small maps; no-path case; parse errors; drawing;
+               the generators produce valid maps
