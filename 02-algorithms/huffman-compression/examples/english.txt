@@ -1,0 +1,64 @@
+Short Codes for Common Things
+
+Long before computers, people who sent messages for a living already knew a
+simple rule: things you say often should be short. When Samuel Morse and
+Alfred Vail designed their telegraph code in the 1830s, they gave the letter E
+a single dot and the letter T a single dash, while rare letters such as Q and Z
+received four symbols each. The story goes that Vail estimated how common each
+letter was by counting the pieces of type in a printer's case. Whether or not
+that detail is true, the idea was sound. An operator tapping out English text
+spent most of his time on a handful of letters, so making those letters cheap
+made every message faster.
+
+A century later, the same idea was given a mathematical form. In 1948 Claude
+Shannon showed that every source of messages has a quantity he called entropy,
+measured in bits per symbol. If a source picks its symbols with probabilities
+p1, p2 and so on, no code that works one symbol at a time can use fewer than
+H = -(p1 log p1 + p2 log p2 + ...) bits per symbol on average. Entropy is a
+floor. A fair coin has an entropy of one bit per toss, and you cannot do better
+than one bit. A coin that lands on heads nine times out of ten has an entropy of
+less than half a bit, which means a clever code can describe a long run of
+tosses in far fewer bits than there are tosses.
+
+Shannon and Robert Fano proposed a way to build such codes by splitting the
+symbols into two groups of roughly equal probability, giving one group a 0 and
+the other a 1, and repeating inside each group. It worked well, but it was not
+always optimal. In 1951 Fano gave the students in his information theory class
+at MIT a choice: take the final exam, or write a term paper on finding the most
+efficient binary code. David Huffman chose the paper. After months without
+success he was about to give up and start studying for the exam when he saw
+the trick. Instead of splitting from the top, build the code from the bottom.
+
+Huffman's method is short enough to describe in a few lines. Count how often
+each symbol appears. Put every symbol in a list with its count. Take the two
+entries with the smallest counts, join them under a new node whose count is
+their sum, and put that node back in the list. Repeat until only one node is
+left. The result is a binary tree with the symbols at its leaves. Reading the
+path from the root to a leaf, writing 0 for every left turn and 1 for every
+right turn, gives the code for that symbol. Rare symbols are joined early and
+end up deep in the tree with long codes; common symbols are joined late and
+stay near the root with short ones.
+
+Two properties make the result useful. First, no code is the beginning of
+another code, because every symbol sits at a leaf and no leaf lies on the path
+to another leaf. A decoder can therefore read the bits one at a time, walk down
+the tree, and output a symbol each time it reaches a leaf, without any
+separators between codes. Second, Huffman proved that no other prefix code
+built for the same counts has a shorter average length. The average is always
+at least the entropy and less than the entropy plus one bit.
+
+That last gap is the main weakness. Each symbol must get a whole number of
+bits, so a symbol with a probability of ninety percent still costs one full bit
+even though its information content is about 0.15 bits. Arithmetic coding and
+its modern relatives avoid this by coding the whole message as a single number,
+and dictionary methods such as those of Lempel and Ziv look for repeated
+strings instead of single characters. In practice the two ideas are combined.
+The DEFLATE format used by zip files, gzip and PNG images first replaces
+repeated strings with short references and then compresses the result with
+Huffman codes. JPEG uses Huffman coding as its last step as well.
+
+The exercise also shows what compression cannot do. A file of truly random
+bytes has an entropy of eight bits per byte, the same as its size. There is no
+pattern to exploit, and any coding scheme that shrinks some inputs must make
+others larger. A good compressor is a good model of its data: it wins exactly
+where the data is predictable, and nowhere else.
