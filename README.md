@@ -1,6 +1,6 @@
 # Portfolio Projects
 
-Welcome to my code portfolio! This repository serves as a centralized collection of some of my projects.
+Welcome to my portfolio! This repository serves as a centralized collection of some of my projects.
 
 **Author:** Bruno Coutinho
 
@@ -8,16 +8,29 @@ Welcome to my code portfolio! This repository serves as a centralized collection
 
 ## Repository Architecture
 
-This repository is organized by complexity and topic. Currently, it features core Python fundamentals and automation tools.
+This repository is organized by complexity and topic. Currently, it features core Python fundamentals and advancing into data structures and algorithmic problem-solving.
+
 
 ### `01-fundamentals`
 A collection of standalone Python mini-projects demonstrating core programming concepts, file system operations, and data validation.
 
 | Project | Description | Key Skills Demonstrated |
 |---|---|---|
-| **`file-organizer`** | An automated script to categorize and sort cluttered directories based on file extensions. | File I/O, `pathlib`, automation |
-| **`duplicate-file-finder`** | A tool that scans directories to identify and report duplicate files to free up disk space. | Hashing algorithms, system traversal |
-| **`pt-nif-iban-validator`** | A localized utility to validate Portuguese Tax Identification Numbers (NIF) and IBAN formats. | Regex, mathematical checksum validation |
+| [**`file-organizer`**](https://github.com/BrunoAlexCoutinho/Portfolio/tree/main/01-fundamentals/file-organizer) | An automated script to categorize and sort cluttered directories based on file extensions. | File I/O, `pathlib`, automation |
+| [**`duplicate-file-finder`**](https://github.com/BrunoAlexCoutinho/Portfolio/tree/main/01-fundamentals/duplicate-file-finder) | A tool that scans directories to identify and report duplicate files to free up disk space. | Hashing algorithms, system traversal |
+| [**`pt-nif-iban-validator`**](https://github.com/BrunoAlexCoutinho/Portfolio/tree/main/01-fundamentals/pt-nif-iban-validator) | A localized utility to validate Portuguese Tax Identification Numbers (NIF) and IBAN formats. | Regex, mathematical checksum validation |
+
+---
+
+
+
+### `02-algorithms-data-structures`
+Implementations of classic computer science algorithms and custom data structures, optimized for performance and fully tested.
+
+| Project | Description | Key Skills Demonstrated |
+|---|---|---|
+| [**`grid-pathfinding`**](https://github.com/BrunoAlexCoutinho/Portfolio/tree/main/02-algorithms/grid-pathfinding) | A pathfinding engine comparing the efficiency of BFS, Dijkstra, and A* search algorithms on text-file maps. | Graph traversal, `heapq`, heuristics |
+| [**`huffman-compression`**](https://github.com/BrunoAlexCoutinho/Portfolio/tree/main/02-algorithms/huffman-compression) | A lossless data compression and decompression utility utilizing Huffman coding trees and bit packing. | Priority queues, binary trees, binary I/O |
 
 ---
 
